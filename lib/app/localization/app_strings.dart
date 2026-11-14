@@ -201,6 +201,12 @@ class AppStrings {
     return isArabic ? 'قوي برشا' : (isFrench ? 'Intense' : 'Overwhelming');
   }
 
+  String get intensityDecreaseLabel =>
+      isArabic ? 'نقص الشدة' : (isFrench ? 'Diminuer l’intensité' : 'Decrease intensity');
+
+  String get intensityIncreaseLabel =>
+      isArabic ? 'زيد الشدة' : (isFrench ? 'Augmenter l’intensité' : 'Increase intensity');
+
   // Daily Cognitive Insight
   String get dailyInsightTitle => isArabic ? 'ملاحظة علم الأعصاب الإدراكي' : (isFrench ? 'Éclairage Neuro-Cognitif' : 'Neuro-Cognitive Insight');
   String get dailyInsightBody => isArabic

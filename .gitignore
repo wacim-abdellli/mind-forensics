@@ -54,3 +54,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Local prototype reference (untracked workspace)
+/mind_forensics_prototype/

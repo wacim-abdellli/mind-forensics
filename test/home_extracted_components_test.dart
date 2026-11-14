@@ -64,12 +64,23 @@ void main() {
       await tester.pumpAndSettle();
       expect(selectedIdx, equals(1));
 
-      // Tap intensity level 8 cleanly (zero bar dragging)
-      await tester.tap(find.byKey(const ValueKey<String>('intensity-level-8')));
+      // Tap tier 4 ('7-8') cleanly -> jumps to 8/10 ('Strong') without bar dragging
+      await tester.tap(find.byKey(const ValueKey<String>('intensity-tier-4')));
       await tester.pumpAndSettle();
       expect(intensity, equals(8.0));
       expect(find.text('${strings.moodIntensityLabel.toUpperCase()}: 8/10'), findsOneWidget);
       expect(find.text('Strong'), findsOneWidget);
+
+      // Step fine control +1 -> 9/10 ('Overwhelming'), -1 -> 8/10 ('Strong')
+      await tester.tap(find.byKey(const ValueKey<String>('intensity-step-up')));
+      await tester.pumpAndSettle();
+      expect(intensity, equals(9.0));
+      expect(find.text('${strings.moodIntensityLabel.toUpperCase()}: 9/10'), findsOneWidget);
+      expect(find.text('Overwhelming'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey<String>('intensity-step-down')));
+      await tester.pumpAndSettle();
+      expect(intensity, equals(8.0));
 
       // Enter optional text note
       await tester.enterText(find.byType(TextField), 'Calibrated evening walk');

@@ -1661,6 +1661,169 @@ class AppStrings {
     }
   }
 
+  // Step 8: Self-Care Tools Drills, Insights Baseline & Chart, 4-Card Profile/Settings
+  String get quickCalmTitle => isArabic
+      ? 'تهدئة سريعة'
+      : (isFrench ? 'Apaisement rapide' : 'Quick Calm');
+  String get quickCalmSub => isArabic
+      ? 'تنفّس مربّع 4-4-4-4 · تنجم توقّف وقت ما تحب'
+      : (isFrench
+          ? 'Respiration 4-4-4-4 · Arrêtez quand vous voulez'
+          : '4-4-4-4 Box Breathing · Stop anytime');
+  String get practiceLabelingTitle => isArabic
+      ? 'تمرّن على التمييز: حقيقة أم تخمين أم قصة'
+      : (isFrench
+          ? 'Pratiquer : Fait, Supposition ou Récit'
+          : 'Practice: Fact, Guess, or Story');
+  String get practiceLabelingSub => isArabic
+      ? 'اقرأ الجملة واختار التصنيف الأقرب — من غير أي ضغط.'
+      : (isFrench
+          ? 'Lisez chaque phrase et distinguez l’observable de l’interprétation.'
+          : 'Tap the tag that matches each sentence — no score, just practice.');
+  String get drillCorrectBanner => isArabic
+      ? 'تمام — التمييز واضح وموزون.'
+      : (isFrench
+          ? 'Exact — belle distinction entre fait et interprétation.'
+          : 'Spot on — balanced separation of observation and story.');
+  String get drillHintPrefix => isArabic
+      ? 'نظرة أخرى:'
+      : (isFrench ? 'Autre piste :' : 'Consider:');
+
+  String get chartHighLabel => isArabic ? 'مرتفع' : (isFrench ? 'Haut' : 'High');
+  String get chartMidLabel => isArabic ? 'متوسط' : (isFrench ? 'Moyen' : 'Mid');
+  String get chartLowLabel => isArabic ? 'منخفض' : (isFrench ? 'Bas' : 'Low');
+  String get calibratingChartTitle => isArabic
+      ? 'منحنى المزاج قيد المعايرة'
+      : (isFrench
+          ? 'Courbe d’humeur en calibration'
+          : 'Mood rhythm calibrating');
+  String get calibratingChartSub => isArabic
+      ? 'سجّل يومين مختلفين على الأقل باش يظهر المنحنى الشخصي متاعك.'
+      : (isFrench
+          ? 'Enregistrez au moins 2 jours différents pour tracer votre courbe.'
+          : 'Log at least 2 different days to render your mood curve.');
+  String get steadyWithBaseline => isArabic
+      ? 'مستقر مع خطك المرجعي'
+      : (isFrench
+          ? 'Stable avec votre repère'
+          : 'Steady with your baseline');
+  String get rollingNormalSubtitle => isArabic
+      ? 'معدّلك المعتاد خلال آخر 30 يوماً من الملاحظة الذاتية:'
+      : (isFrench
+          ? 'Votre repère habituel sur les 30 derniers jours d’observation :'
+          : 'Your rolling normal over the past 30 days of self-observation:');
+  String get recordedSymptomsPrefix => isArabic
+      ? 'الأعراض والمشاعر المسجّلة:'
+      : (isFrench
+          ? 'Observations physiques notées :'
+          : 'Recorded Symptoms:');
+  String get fullProgressTrendsTitle => isArabic
+      ? 'التقدّم الكامل والاتجاهات الطويلة'
+      : (isFrench
+          ? 'Progrès complet et tendances longues'
+          : 'Full Progress & Longitudinal Trends');
+  String get fullProgressTrendsSub => isArabic
+      ? 'توزيع المشاعر، المؤشرات الجسدية وأرشيف التأملات'
+      : (isFrench
+          ? 'Spectre émotionnel, indices somatiques et archive'
+          : 'Detailed emotion breakdown, somatic index & milestone archive');
+
+  String get mostCommonThisWeekLabel => isArabic
+      ? 'الشعور الأكثر تكراراً هذا الأسبوع'
+      : (isFrench
+          ? 'Ressenti le plus fréquent cette semaine'
+          : 'Most common this week');
+  String get baselineSleepComparisonTitle => isArabic
+      ? 'النوم مقارنةً بخطك المرجعي'
+      : (isFrench
+          ? 'Sommeil vs repère habituel'
+          : 'Sleep vs baseline');
+  String get baselineMoodComparisonTitle => isArabic
+      ? 'الشدّة المزاجية مقارنةً بخطك المرجعي'
+      : (isFrench
+          ? 'Intensité vs repère habituel'
+          : 'Mood intensity vs baseline');
+
+  /// Formats a numeric delta relative to a personal baseline without noisy "0.0".
+  String formatBaselineDelta({
+    required double delta,
+    required double baselineValue,
+    required String unit,
+    bool higherLabel = true,
+  }) {
+    final baseStr = '${baselineValue.toStringAsFixed(1)}$unit';
+    if (delta.abs() < 0.1) {
+      return '$steadyWithBaseline ($baseStr)';
+    }
+    final amountStr = '${delta.abs().toStringAsFixed(1)}$unit';
+    if (isArabic) {
+      final dir = delta > 0 ? 'أعلى بـ' : 'أقل بـ';
+      return '$dir $amountStr (المرجع: $baseStr)';
+    }
+    if (isFrench) {
+      final dir = delta > 0 ? 'plus haut de' : 'plus bas de';
+      return '$dir $amountStr (repère : $baseStr)';
+    }
+    final dir = delta > 0 ? 'up by' : 'down by';
+    return '$dir $amountStr from baseline ($baseStr)';
+  }
+
+  // Step 8 Profile / Settings 4 grouped cards + double-confirm reset
+  String get profileGroupYou =>
+      isArabic ? 'أنت' : (isFrench ? 'Vous' : 'You');
+  String get profileGroupDisplay => isArabic
+      ? 'العرض واللغة'
+      : (isFrench ? 'Affichage & Langue' : 'Display & Language');
+  String get profileGroupAiSecurity => isArabic
+      ? 'المساعد والأمان'
+      : (isFrench ? 'Assistant IA & Sécurité' : 'AI Guide & Security');
+  String get profileGroupDataCrisis => isArabic
+      ? 'البيانات والطوارئ'
+      : (isFrench ? 'Données & Crise' : 'Data & Crisis');
+  String get preferredNameLabel => isArabic
+      ? 'الاسم المفضّل'
+      : (isFrench ? 'Prénom / Nom affiché' : 'Preferred name');
+  String get editPreferredNameHint => isArabic
+      ? 'أدخل الاسم الذي تحب الظهور به...'
+      : (isFrench ? 'Comment souhaitez-vous être appelé ?' : 'How should we address you?');
+  String get notSetLabel =>
+      isArabic ? 'غير محدد' : (isFrench ? 'Non défini' : 'Not set');
+  String get accountStatusLabel => isArabic
+      ? 'حالة الحساب'
+      : (isFrench ? 'Compte' : 'Account');
+  String get localDeviceOnlyLabel => isArabic
+      ? 'خاص على هذا الجهاز'
+      : (isFrench ? 'Privé sur cet appareil' : 'Private on this device');
+  String get backupNowBtn => isArabic
+      ? 'نسخ احتياطي الآن'
+      : (isFrench ? 'Sauvegarder' : 'Backup Now');
+  String get supportCrisisRowTitle => isArabic
+      ? 'الدعم والمساعدة العاجلة'
+      : (isFrench ? 'Aide & Lignes d’urgence' : 'Support & Crisis Helplines');
+  String get resetConfirmStep1Title => isArabic
+      ? 'بدء تصفير كل البيانات؟'
+      : (isFrench
+          ? 'Commencer la réinitialisation complète ?'
+          : 'Start full local data reset?');
+  String get resetConfirmStep1Body => isArabic
+      ? 'باش تتأكّد في الخطوة الجاية قبل مسح أي يومية، أو جلسة، أو ملف من جهازك.'
+      : (isFrench
+          ? 'Une deuxième confirmation sera demandée avant d’effacer vos bilans, sessions et profil.'
+          : 'You will confirm once more before erasing check-ins, sessions, and your local profile.');
+  String get continueActionBtn =>
+      isArabic ? 'مواصلة' : (isFrench ? 'Continuer' : 'Continue');
+  String get resetConfirmStep2Title => isArabic
+      ? 'تأكيد المسح النهائي؟'
+      : (isFrench ? 'Confirmation finale ?' : 'Final confirmation?');
+  String get resetConfirmStep2Body => isArabic
+      ? 'كل التدوينات، الجلسات، الذكريات والملف الشخصي على هذا الجهاز باش يتمسحو نهائياً. ما فماش رجوع.'
+      : (isFrench
+          ? 'Toutes vos traces, conversations et données de profil seront supprimées de façon irréversible.'
+          : 'All check-ins, AI Guide conversations, memories, and profile records on this device will be permanently removed.');
+  String get confirmResetBtn => isArabic
+      ? 'نعم، امسح كل شيء'
+      : (isFrench ? 'Tout effacer' : 'Erase Everything');
+
   // Helper factory
   static AppStrings of(BuildContext context) {
     final locale = Localizations.localeOf(context);

@@ -58,6 +58,21 @@ final selectedReflectionSourceFilterProvider =
 
 /// Pure computation engine for calculating non-judgmental progress analytics.
 class ProgressAnalyticsCalculator {
+  /// Formats a baseline difference so values within [-0.1, 0.1] display
+  /// "Steady with your baseline" instead of noisy "0.0" / "-0.0" offsets.
+  static String describeDeltaVsBaseline({
+    required double recentAverage,
+    required double baselineAverage,
+    required String unit,
+    required AppStrings strings,
+  }) {
+    return strings.formatBaselineDelta(
+      delta: recentAverage - baselineAverage,
+      baselineValue: baselineAverage,
+      unit: unit,
+    );
+  }
+
   static ProgressAnalyticsModel computeAnalytics({
     required List<MindTraceModel> allTraces,
     required List<CaseModel> allCases,

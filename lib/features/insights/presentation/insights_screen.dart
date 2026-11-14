@@ -9,7 +9,8 @@ import '../../../core/safety/support_button.dart';
 import '../../../core/widgets/mind_badge.dart';
 import '../../../core/widgets/mind_button.dart';
 import '../../../core/widgets/mind_card.dart';
-import '../../../core/widgets/mind_pill.dart';
+import '../../../core/widgets/mind_pressable.dart';
+import '../../../core/widgets/mind_segmented.dart';
 import '../../../core/widgets/smooth_spline_chart.dart';
 import '../../case_file/presentation/clinical_export_preview_sheet.dart';
 import '../../investigation/controllers/investigation_providers.dart';
@@ -33,7 +34,9 @@ class InsightsScreen extends ConsumerStatefulWidget {
 }
 
 class _InsightsScreenState extends ConsumerState<InsightsScreen> {
+  static const _rangeLabels = ['1W', '1M', '3M', '6M'];
   String _selectedRange = '1M';
+  int? _selectedPointIndex;
 
   List<MindTraceModel> _filterTracesByRange(List<MindTraceModel> traces) {
     final now = DateTime.now();
@@ -171,49 +174,57 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 1. Time Horizon Filter + Quick Self-Care Tools Shortcut
-            Wrap(
-              spacing: 6,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                ...['1W', '1M', '3M', '6M'].map((r) {
-                  return MindPill(
-                    label: r,
-                    isSelected: _selectedRange == r,
-                    onTap: () => setState(() => _selectedRange = r),
-                  );
-                }),
-                Semantics(
-                  button: true,
-                  child: InkWell(
-                    onTap: () => context.push('/observatory'),
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      constraints: const BoxConstraints(minHeight: 48),
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: tokens.accentSoft,
-                        borderRadius: BorderRadius.circular(14),
+            MindSegmented(
+              index: _rangeLabels.indexOf(_selectedRange).clamp(0, _rangeLabels.length - 1),
+              labels: _rangeLabels,
+              onChanged: (idx) {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  _selectedRange = _rangeLabels[idx];
+                  _selectedPointIndex = null;
+                });
+              },
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Semantics(
+                button: true,
+                label: strings.navObservatory,
+                child: MindPressable(
+                  onPressed: () => context.push('/observatory'),
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: tokens.accentSoft,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: tokens.accent.withValues(alpha: 0.35),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.spa_outlined, size: 15, color: tokens.accent),
-                          const SizedBox(width: 5),
-                          Text(
-                            strings.navObservatory,
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w700,
-                              color: tokens.accent,
-                            ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.spa_outlined, size: 16, color: tokens.accent),
+                        const SizedBox(width: 8),
+                        Text(
+                          strings.navObservatory,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: tokens.accent,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
             const SizedBox(height: 18),
 
@@ -232,7 +243,14 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             const SizedBox(height: 18),
 
             // 3. Your Patterns Section
-            _buildYourPatternsSection(context, tokens, analytics, strings),
+            _buildYourPatternsSection(
+              context,
+              tokens,
+              analytics,
+              baseline,
+              allTraces,
+              strings,
+            ),
             const SizedBox(height: 18),
 
             // 4. Context & Mood Links (Shown only when triggers or helpers exist to keep UI calm)
@@ -253,7 +271,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 strings.patternAwarenessTitle.toUpperCase(),
                 style: TextStyle(
                   color: tokens.textSecondary,
-                  fontSize: 11,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 1.1,
                 ),
@@ -271,41 +289,45 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             MindCard(
               padding: const EdgeInsets.all(16),
               onTap: () => context.push('/progress'),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: tokens.accentSoft,
-                    borderRadius: BorderRadius.circular(tokens.chipRadius),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: tokens.accentSoft,
+                      borderRadius: BorderRadius.circular(tokens.chipRadius),
+                    ),
+                    child: Icon(Icons.analytics_outlined, size: 20, color: tokens.accent),
                   ),
-                  child: Icon(Icons.analytics_outlined, size: 20, color: tokens.accent),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Full Progress & Longitudinal Trends',
-                        style: TextStyle(
-                          color: tokens.textPrimary,
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          strings.fullProgressTrendsTitle,
+                          style: TextStyle(
+                            color: tokens.textPrimary,
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Detailed emotion breakdown, somatic radar & milestone archive',
-                        style: TextStyle(color: tokens.textSecondary, fontSize: 11.5),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          strings.fullProgressTrendsSub,
+                          style: TextStyle(color: tokens.textSecondary, fontSize: 11.5),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Icon(Icons.chevron_right, size: 18, color: tokens.textTertiary),
-              ],
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 18,
+                    color: tokens.textTertiary,
+                  ),
+                ],
+              ),
             ),
-          ),
           const SizedBox(height: 32),
         ],
       ),
@@ -319,7 +341,8 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
     List<MindTraceModel> traces,
     AppStrings strings,
   ) {
-    if (traces.length < 2) {
+    final distinctDays = traces.map((t) => t.dateKey).toSet().length;
+    if (distinctDays < 2) {
       return MindCard(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
@@ -330,7 +353,11 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 shape: BoxShape.circle,
                 color: tokens.surfaceSecondary,
               ),
-              child: Icon(Icons.show_chart_rounded, size: 20, color: tokens.textSecondary),
+              child: Icon(
+                Icons.show_chart_rounded,
+                size: 20,
+                color: tokens.textSecondary,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -338,25 +365,21 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    strings.isArabic
-                        ? 'منحنى المزاج قيد المعايرة'
-                        : (strings.isFrench
-                            ? 'Courbe d’humeur en calibration'
-                            : 'Mood curve calibrating'),
+                    strings.calibratingChartTitle,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.5,
                       fontWeight: FontWeight.w700,
                       color: tokens.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    strings.isArabic
-                        ? 'سجل يومين على الأقل من الملاحظات لرسم منحنى المزاج الخاص بك.'
-                        : (strings.isFrench
-                            ? 'Au moins 2 jours d’observations sont requis pour tracer votre courbe personnelle.'
-                            : 'At least 2 days of observations needed to render your personal mood curve.'),
-                    style: TextStyle(fontSize: 11.5, color: tokens.textSecondary),
+                    strings.calibratingChartSub,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: tokens.textSecondary,
+                      height: 1.35,
+                    ),
                   ),
                 ],
               ),
@@ -371,51 +394,71 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
         ? sortedTraces.sublist(sortedTraces.length - 14)
         : sortedTraces;
     final chartValues = recentTraces
-        .map((t) => (t.moodIntensity / 10.0).clamp(0.05, 0.95))
+        .map((t) => ((t.moodIntensity - 1) / 9.0).clamp(0.05, 0.95))
         .toList();
-    final lastTrace = recentTraces.last;
-    final monthNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
+    final activeIdx = (_selectedPointIndex != null &&
+            _selectedPointIndex! >= 0 &&
+            _selectedPointIndex! < recentTraces.length)
+        ? _selectedPointIndex!
+        : recentTraces.length - 1;
+    final selectedTrace = recentTraces[activeIdx];
     final activeLabel =
-        '${monthNames[lastTrace.date.month - 1]} ${lastTrace.date.day}\n${lastTrace.overallMood.toUpperCase()}';
+        '${strings.shortMonthName(selectedTrace.date.month)} ${selectedTrace.date.day} · ${selectedTrace.moodIntensity}/10';
 
     return MindCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(
-                Icons.sentiment_satisfied_outlined,
-                size: 19,
-                color: tokens.textSecondary,
+          SizedBox(
+            height: 132,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 24, bottom: 8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    strings.chartHighLabel,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: tokens.textTertiary,
+                    ),
+                  ),
+                  Text(
+                    strings.chartMidLabel,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: tokens.textTertiary,
+                    ),
+                  ),
+                  Text(
+                    strings.chartLowLabel,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: tokens.textTertiary,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 22),
-              Icon(
-                Icons.sentiment_neutral_outlined,
-                size: 19,
-                color: tokens.textSecondary,
-              ),
-              const SizedBox(height: 22),
-              Icon(
-                Icons.sentiment_dissatisfied_outlined,
-                size: 19,
-                color: tokens.textSecondary,
-              ),
-            ],
+            ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: SmoothSplineChart(
               values: chartValues,
-              height: 120,
-              activePointIndex: chartValues.length - 1,
+              height: 132,
+              activePointIndex: activeIdx,
               activePointLabel: activeLabel,
               lineColor: tokens.accent,
               showDots: true,
+              onPointSelected: (idx) {
+                HapticFeedback.selectionClick();
+                setState(() => _selectedPointIndex = idx);
+              },
             ),
           ),
         ],
@@ -427,9 +470,43 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
     BuildContext context,
     MindTokens tokens,
     ProgressAnalyticsModel analytics,
+    PersonalBaseline baseline,
+    List<MindTraceModel> allTraces,
     AppStrings strings,
   ) {
     final insights = analytics.insights;
+    final weekCutoff = DateTime.now().subtract(const Duration(days: 7));
+    final recentWeek = allTraces
+        .where((t) => !t.date.isBefore(weekCutoff))
+        .toList();
+
+    final weekSleeps = recentWeek
+        .where((t) => t.sleepHours != null)
+        .map((t) => t.sleepHours!)
+        .toList();
+    final avgWeekSleep = weekSleeps.isEmpty
+        ? null
+        : weekSleeps.reduce((a, b) => a + b) / weekSleeps.length;
+    final avgWeekMood = recentWeek.isEmpty
+        ? null
+        : recentWeek.map((t) => t.moodIntensity).reduce((a, b) => a + b) /
+            recentWeek.length;
+
+    String? mostCommonMood;
+    if (recentWeek.isNotEmpty) {
+      final counts = <String, int>{};
+      for (final t in recentWeek) {
+        final m = t.overallMood.trim();
+        if (m.isNotEmpty) {
+          counts[m] = (counts[m] ?? 0) + 1;
+        }
+      }
+      if (counts.isNotEmpty) {
+        mostCommonMood = counts.entries
+            .reduce((a, b) => a.value >= b.value ? a : b)
+            .key;
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,17 +530,32 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             const SizedBox(width: 8),
             Semantics(
               button: true,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => context.push('/progress'),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  child: Text(
-                    '${strings.viewAllArrowLabel} →',
-                    style: TextStyle(
-                      color: tokens.accent,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
+              label: strings.viewAllArrowLabel,
+              child: MindPressable(
+                onPressed: () => context.push('/progress'),
+                borderRadius: BorderRadius.circular(10),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          strings.viewAllArrowLabel,
+                          style: TextStyle(
+                            color: tokens.accent,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 15,
+                          color: tokens.accent,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -472,6 +564,55 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           ],
         ),
         const SizedBox(height: 10),
+        if (baseline.hasSufficientData && recentWeek.isNotEmpty) ...[
+          MindCard(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (avgWeekSleep != null && baseline.averageSleepHours != null)
+                  _buildDeltaComparisonRow(
+                    tokens: tokens,
+                    icon: Icons.bedtime_outlined,
+                    label: strings.baselineSleepComparisonTitle,
+                    value: ProgressAnalyticsCalculator.describeDeltaVsBaseline(
+                      recentAverage: avgWeekSleep,
+                      baselineAverage: baseline.averageSleepHours!,
+                      unit: 'h',
+                      strings: strings,
+                    ),
+                  ),
+                if (avgWeekMood != null &&
+                    baseline.averageMoodIntensity != null) ...[
+                  if (avgWeekSleep != null &&
+                      baseline.averageSleepHours != null)
+                    Divider(height: 18, thickness: 0.5, color: tokens.border),
+                  _buildDeltaComparisonRow(
+                    tokens: tokens,
+                    icon: Icons.speed_outlined,
+                    label: strings.baselineMoodComparisonTitle,
+                    value: ProgressAnalyticsCalculator.describeDeltaVsBaseline(
+                      recentAverage: avgWeekMood,
+                      baselineAverage: baseline.averageMoodIntensity!,
+                      unit: '/10',
+                      strings: strings,
+                    ),
+                  ),
+                ],
+                if (mostCommonMood != null) ...[
+                  Divider(height: 18, thickness: 0.5, color: tokens.border),
+                  _buildDeltaComparisonRow(
+                    tokens: tokens,
+                    icon: Icons.label_outline_rounded,
+                    label: strings.mostCommonThisWeekLabel,
+                    value: mostCommonMood,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
         if (insights.isEmpty)
           MindCard(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -483,7 +624,9 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                   child: Text(
                     strings.isArabic
                         ? 'الأنماط قيد المعايرة: مع استمرارك في تسجيل الملاحظات اليومية، ستظهر هنا روابط دقيقة بين النوم والمزاج.'
-                        : 'Patterns calibrating: As you log observations over time, correlations between sleep, mood, and stress will appear here.',
+                        : (strings.isFrench
+                            ? 'Calibration en cours : à mesure que vous notez vos observations, les liens entre sommeil, humeur et stress apparaîtront ici.'
+                            : 'Patterns calibrating: As you log observations over time, correlations between sleep, mood, and stress will appear here.'),
                     style: TextStyle(fontSize: 12, color: tokens.textSecondary, height: 1.4),
                   ),
                 ),
@@ -537,7 +680,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                       ),
                     ),
                     Icon(
-                      Icons.chevron_right,
+                      Icons.chevron_right_rounded,
                       size: 18,
                       color: tokens.textTertiary,
                     ),
@@ -546,6 +689,44 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
               ),
             );
           }),
+      ],
+    );
+  }
+
+  Widget _buildDeltaComparisonRow({
+    required MindTokens tokens,
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 17, color: tokens.accent),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: tokens.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: tokens.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -697,7 +878,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             ),
           ] else ...[
             Text(
-              'Your rolling normal over the past 30 days of self-observation:',
+              strings.rollingNormalSubtitle,
               style: TextStyle(color: tokens.textSecondary, fontSize: 12.5),
             ),
             const SizedBox(height: 14),
@@ -724,7 +905,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
               const Divider(height: 24, thickness: 0.5),
               Text(
                 '${strings.frequentEmotionsLabel}: ${baseline.commonEmotions.join(', ')}',
-                style: TextStyle(color: tokens.textTertiary, fontSize: 11, fontWeight: FontWeight.w600),
+                style: TextStyle(color: tokens.textTertiary, fontSize: 11.5, fontWeight: FontWeight.w600),
               ),
             ],
           ],
@@ -740,7 +921,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(color: tokens.textTertiary, fontSize: 9.5, fontWeight: FontWeight.w700),
+            style: TextStyle(color: tokens.textTertiary, fontSize: 11.5, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           Text(
@@ -749,6 +930,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
               color: tokens.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
             ),
           ),
         ],
@@ -832,7 +1014,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
               d.uncertaintyStatement,
               style: TextStyle(
                 color: tokens.textTertiary,
-                fontSize: 10.5,
+                fontSize: 11.5,
                 fontStyle: FontStyle.italic,
               ),
             ),
@@ -861,7 +1043,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                   strings.weeklySummaryTitle.toUpperCase(),
                   style: TextStyle(
                     color: tokens.textSecondary,
-                    fontSize: 11,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.1,
                   ),
@@ -884,7 +1066,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
           if (report.topSymptoms.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              'Recorded Symptoms: ${report.topSymptoms.join(', ')}',
+              '${strings.recordedSymptomsPrefix}: ${report.topSymptoms.join(', ')}',
               style: TextStyle(color: tokens.textTertiary, fontSize: 11.5),
             ),
           ],
@@ -893,7 +1075,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             strings.suggestedTherapyLabel,
             style: TextStyle(
               color: tokens.accent,
-              fontSize: 10.5,
+              fontSize: 11.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
             ),

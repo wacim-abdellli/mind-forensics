@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/localization/app_strings.dart';
 import '../../../../app/theme/lab_colors.dart';
+import '../../../../app/theme/mind_tokens.dart';
+import '../../../../core/widgets/mind_button.dart';
+import '../../../../core/widgets/mind_card.dart';
+import '../../../../core/widgets/mind_pressable.dart';
 import '../../../investigation/domain/label_type.dart';
 import '../../../observatory/presentation/widgets/custom_perspective_sheet.dart';
 
@@ -107,20 +111,15 @@ class _PerspectiveExplorationCardState
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final strings = ref.watch(appStringsProvider);
     final isAr = strings.isArabic;
     final isFr = strings.isFrench;
 
-    final surfaceColor =
-        isDark ? LabColors.nightSurface : LabColors.daylightSurface;
-    final borderColor =
-        isDark ? LabColors.nightBorder : LabColors.daylightBorder;
-    final textPrimary =
-        isDark ? LabColors.nightTextPrimary : LabColors.daylightTextPrimary;
-    final textSecondary =
-        isDark ? LabColors.nightTextSecondary : LabColors.daylightTextSecondary;
+    final textPrimary = tokens.textPrimary;
+    final textSecondary = tokens.textSecondary;
 
     final scenario = _scenarios[_scenarioIndex];
     final fact = isAr
@@ -133,13 +132,8 @@ class _PerspectiveExplorationCardState
         ? scenario['alternativesAr']
         : (isFr ? scenario['alternativesFr'] : scenario['alternatives'])) as List<String>;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: borderColor, width: 1),
-      ),
+    return MindCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,40 +147,56 @@ class _PerspectiveExplorationCardState
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
+                    fontFamily: 'Inter',
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: isAr ? 0 : 0.7,
                     color: textSecondary,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              InkWell(
-                onTap: _nextScenario,
-                child: Row(
-                  children: [
-                    Text(
-                      isAr
-                          ? 'مثال آخر'
-                          : (isFr ? 'Autre exemple' : 'Next Example'),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: LabColors.sageGreen,
-                      ),
+              MindPressable(
+                onPressed: _nextScenario,
+                semanticLabel: isAr
+                    ? 'مثال آخر'
+                    : (isFr ? 'Autre exemple' : 'Next Example'),
+                borderRadius: BorderRadius.circular(tokens.chipRadius),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 48),
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
                     ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      Icons.refresh_rounded,
-                      size: 13,
-                      color: LabColors.sageGreen,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          isAr
+                              ? 'مثال آخر'
+                              : (isFr ? 'Autre exemple' : 'Next Example'),
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: tokens.accent,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.refresh_rounded,
+                          size: 16,
+                          color: tokens.accent,
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
 
           // 1. Observable Fact Box
           Container(
@@ -194,7 +204,7 @@ class _PerspectiveExplorationCardState
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isDark ? LabColors.factBackgroundDark : LabColors.factBackgroundLight,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(tokens.chipRadius),
               border: Border.all(
                 color: isDark ? LabColors.factBorderDark : LabColors.factBorderLight,
               ),
@@ -206,10 +216,11 @@ class _PerspectiveExplorationCardState
                   isAr
                       ? 'الواقعة الملموسة (FACT)'
                       : (isFr ? 'FAIT OBSERVABLE' : 'OBSERVABLE FACT'),
-                  style: const TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: isAr ? 0 : 0.5,
                     color: LabColors.factBlue,
                   ),
                 ),
@@ -217,7 +228,8 @@ class _PerspectiveExplorationCardState
                 Text(
                   fact as String,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontFamily: 'Inter',
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                     color: textPrimary,
                   ),
@@ -233,7 +245,7 @@ class _PerspectiveExplorationCardState
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isDark ? LabColors.assumptionBackgroundDark : LabColors.assumptionBackgroundLight,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(tokens.chipRadius),
               border: Border.all(
                 color: isDark ? LabColors.assumptionBorderDark : LabColors.assumptionBorderLight,
               ),
@@ -247,10 +259,11 @@ class _PerspectiveExplorationCardState
                       : (isFr
                           ? 'INTERPRÉTATION AUTOMATIQUE'
                           : 'AUTOMATIC INTERPRETATION'),
-                  style: const TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: isAr ? 0 : 0.5,
                     color: LabColors.assumptionAmber,
                   ),
                 ),
@@ -258,7 +271,8 @@ class _PerspectiveExplorationCardState
                 Text(
                   thought as String,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontFamily: 'Inter',
+                    fontSize: 13.5,
                     fontWeight: FontWeight.w600,
                     fontStyle: FontStyle.italic,
                     color: textPrimary,
@@ -277,8 +291,9 @@ class _PerspectiveExplorationCardState
                     ? 'Autres possibilités fondées sur les faits :'
                     : 'Alternative grounded possibilities:'),
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
+              fontFamily: 'Inter',
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
               color: textSecondary,
             ),
           ),
@@ -286,24 +301,24 @@ class _PerspectiveExplorationCardState
           Column(
             children: alternatives.map((alt) {
               return Container(
-                margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F1714) : const Color(0xFFF0FDF4),
-                  borderRadius: BorderRadius.circular(6),
+                  color: tokens.accentSoft,
+                  borderRadius: BorderRadius.circular(tokens.chipRadius),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF143828) : const Color(0xFFDCFCE7),
+                    color: tokens.accent.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 2),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
                       child: Icon(
                         Icons.check_circle_outline_rounded,
-                        size: 14,
-                        color: LabColors.sageGreen,
+                        size: 16,
+                        color: tokens.accent,
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -311,8 +326,9 @@ class _PerspectiveExplorationCardState
                       child: Text(
                         alt,
                         style: TextStyle(
-                          fontSize: 12,
-                          height: 1.35,
+                          fontFamily: 'Inter',
+                          fontSize: 13,
+                          height: 1.4,
                           color: textPrimary,
                         ),
                       ),
@@ -322,27 +338,17 @@ class _PerspectiveExplorationCardState
               );
             }).toList(),
           ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => CustomPerspectiveSheet.show(context),
-              icon: const Icon(Icons.tune_rounded, size: 14),
-              label: Text(
-                isAr
-                    ? 'تفكيك فكرة أو موقف خاص بك'
-                    : (isFr
-                        ? 'Explorer une de vos propres pensées'
-                        : 'Deconstruct a thought of your own'),
-                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: LabColors.sageGreen,
-                side: BorderSide(color: LabColors.sageGreen.withValues(alpha: 0.5)),
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
+          const SizedBox(height: 10),
+          MindButton(
+            text: isAr
+                ? 'تفكيك فكرة أو موقف خاص بك'
+                : (isFr
+                    ? 'Explorer une de vos propres pensées'
+                    : 'Deconstruct a thought of your own'),
+            leadingIcon: Icons.tune_rounded,
+            variant: MindButtonVariant.soft,
+            isFullWidth: true,
+            onPressed: () => CustomPerspectiveSheet.show(context),
           ),
         ],
       ),

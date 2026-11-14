@@ -12,6 +12,8 @@ import '../../support/presentation/contextual_support_sheet.dart';
 import '../../support/presentation/widgets/micro_action_card.dart';
 import '../../support/presentation/widgets/perspective_exploration_card.dart';
 import '../../support/presentation/widgets/routine_anchor_card.dart';
+import '../../tools/presentation/widgets/quick_calm_breathing_sheet.dart';
+import '../../tools/presentation/widgets/reframe_drill_card.dart';
 import 'widgets/add_discovery_sheet.dart';
 import 'widgets/symptom_library_view.dart';
 
@@ -168,11 +170,12 @@ class _InnerObservatoryScreenState extends ConsumerState<InnerObservatoryScreen>
     return MindPressable(
       onPressed: () {
         HapticFeedback.lightImpact();
-        ContextualSupportSheet.show(context);
+        showQuickCalmBreathingSheet(context, strings);
       },
       borderRadius: BorderRadius.circular(16),
+      semanticLabel: '${strings.quickCalmTitle}. ${strings.quickCalmSub}',
       child: Container(
-        constraints: const BoxConstraints(minHeight: 52),
+        constraints: const BoxConstraints(minHeight: 54),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: tokens.surface,
@@ -182,13 +185,13 @@ class _InnerObservatoryScreenState extends ConsumerState<InnerObservatoryScreen>
         child: Row(
           children: [
             Container(
-              width: 34,
-              height: 34,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: tokens.accentSoft,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(Icons.spa_outlined, size: 18, color: tokens.accent),
+              child: Icon(Icons.air_rounded, size: 19, color: tokens.accent),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -196,24 +199,31 @@ class _InnerObservatoryScreenState extends ConsumerState<InnerObservatoryScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    strings.quickGroundingTitle,
+                    strings.quickCalmTitle,
                     style: TextStyle(
-                      fontSize: 13.5,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: tokens.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 1),
+                  const SizedBox(height: 2),
                   Text(
-                    strings.observatorySubtitle,
+                    strings.quickCalmSub,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11.5, color: tokens.textSecondary),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: tokens.textSecondary,
+                    ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, size: 13, color: tokens.textTertiary),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 18,
+              color: tokens.textTertiary,
+            ),
           ],
         ),
       ),
@@ -227,16 +237,21 @@ class _InnerObservatoryScreenState extends ConsumerState<InnerObservatoryScreen>
     required MindTokens tokens,
   }) {
     final isSelected = _selectedSection == index;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
+    final reducedMotion = MediaQuery.disableAnimationsOf(context);
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      label: label,
+      child: MindPressable(
+        onPressed: () {
           HapticFeedback.selectionClick();
           setState(() => _selectedSection = index);
         },
         borderRadius: BorderRadius.circular(12),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
+          duration: reducedMotion
+              ? Duration.zero
+              : const Duration(milliseconds: 180),
           curve: Curves.easeOutCubic,
           constraints: const BoxConstraints(minHeight: 48),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -322,9 +337,13 @@ class _InnerObservatoryScreenState extends ConsumerState<InnerObservatoryScreen>
           Text(
             strings.isArabic
                 ? 'استكشف الفارق بين الواقعة الملموسة، وما يقفز إليه عقلك من افتراضات وتأويلات، لاكتشاف زوايا نظر جديدة.'
-                : 'Explore the difference between what actually happened and what your mind assumed, opening up grounded alternatives.',
+                : (strings.isFrench
+                    ? 'Distinguez ce qui s’est réellement passé de ce que votre esprit a supposé, afin d’ouvrir des perspectives plus ancrées.'
+                    : 'Explore the difference between what actually happened and what your mind assumed, opening up grounded alternatives.'),
             style: TextStyle(fontSize: 12.5, color: textSecondary, height: 1.4),
           ),
+          const SizedBox(height: 16),
+          const ReframeDrillCard(),
           const SizedBox(height: 16),
           const PerspectiveExplorationCard(),
         ],
@@ -420,11 +439,18 @@ class _InnerObservatoryScreenState extends ConsumerState<InnerObservatoryScreen>
                           : (strings.isFrench
                               ? 'Ajouter une découverte'
                               : 'Add Discovery'),
-                      style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     style: TextButton.styleFrom(
                       foregroundColor: context.tokens.accent,
-                      visualDensity: VisualDensity.compact,
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ],
@@ -546,28 +572,35 @@ class _InnerObservatoryScreenState extends ConsumerState<InnerObservatoryScreen>
                 Text(
                   '${activity.completedAt!.day}/${activity.completedAt!.month}',
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 11.5,
                     fontFamily: 'Inter',
                     fontFeatures: const [FontFeature.tabularFigures()],
                     color: textSecondary,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
               ],
               Semantics(
                 button: true,
                 label: 'Delete discovery',
                 child: InkWell(
                   onTap: () {
-                    ref.read(journeyControllerProvider.notifier).deleteDiscovery(activity.id);
+                    ref
+                        .read(journeyControllerProvider.notifier)
+                        .deleteDiscovery(activity.id);
                   },
-                  borderRadius: BorderRadius.circular(4),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Icon(
-                      Icons.close_rounded,
-                      size: 14,
-                      color: textSecondary.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(12),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: 48,
+                      minHeight: 48,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 18,
+                        color: textSecondary.withValues(alpha: 0.75),
+                      ),
                     ),
                   ),
                 ),
@@ -643,14 +676,14 @@ class _InnerObservatoryScreenState extends ConsumerState<InnerObservatoryScreen>
                                 ? 'Bilan d’écoute intérieure'
                                 : 'Self-Attunement Check'),
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: textPrimary,
                         ),
                       ),
                       Text(
                         strings.sectionSymptomExploration,
-                        style: TextStyle(fontSize: 10.5, color: textSecondary),
+                        style: TextStyle(fontSize: 11.5, color: textSecondary),
                       ),
                     ],
                   ),
@@ -658,12 +691,19 @@ class _InnerObservatoryScreenState extends ConsumerState<InnerObservatoryScreen>
                 TextButton(
                   onPressed: () => ContextualSupportSheet.show(context),
                   style: TextButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
+                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     foregroundColor: context.tokens.accent,
                   ),
                   child: Text(
                     strings.contextualSupportTitle,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],

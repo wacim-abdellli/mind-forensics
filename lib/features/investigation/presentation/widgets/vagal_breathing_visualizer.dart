@@ -182,13 +182,19 @@ class _VagalBreathingVisualizerState extends State<VagalBreathingVisualizer>
                         ),
                       ),
                       const SizedBox(height: 2),
-                      Text(
-                        widget.phaseText.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                          color: accent.withValues(alpha: 0.9),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: Text(
+                          widget.phaseText.toUpperCase(),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                            color: accent.withValues(alpha: 0.9),
+                          ),
                         ),
                       ),
                     ],

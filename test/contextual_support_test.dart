@@ -203,5 +203,43 @@ void main() {
       expect(find.textContaining('190'), findsOneWidget);
       expect(find.textContaining('198'), findsOneWidget);
     });
+
+    testWidgets(
+        'SupportButton renders icon-only >=48dp shield on wide nav and opens SupportModalSheet',
+        (tester) async {
+      tester.view.physicalSize = const Size(540, 960);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              appBar: AppBar(
+                title: const Text('Home'),
+                actions: const [SupportButton()],
+              ),
+              body: const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Zero loud nav text label on wide screens; quiet shield icon only.
+      expect(find.text('Crisis Support'), findsNothing);
+      expect(find.byIcon(Icons.shield_outlined), findsOneWidget);
+
+      final buttonSize = tester.getSize(find.byType(SupportButton));
+      expect(buttonSize.width, greaterThanOrEqualTo(48));
+      expect(buttonSize.height, greaterThanOrEqualTo(48));
+
+      await tester.tap(find.byType(SupportButton));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SupportModalSheet), findsOneWidget);
+      expect(find.textContaining('80 10 50 50'), findsOneWidget);
+    });
   });
 }

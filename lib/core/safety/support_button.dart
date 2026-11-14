@@ -5,16 +5,19 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/localization/app_strings.dart';
 import '../../app/theme/lab_colors.dart';
+import '../../app/theme/mind_tokens.dart';
+import '../widgets/mind_pressable.dart';
 import 'safety_model.dart';
 
-/// The persistent, calm "I need support" button required in every mode.
+/// Persistent, low-noise one-tap safety shield reachable from every mode.
 class SupportButton extends ConsumerWidget {
   const SupportButton({super.key, this.compact = false});
 
+  /// Retained for caller compatibility; [SupportButton] always renders a calm
+  /// icon-only 48x48dp shield badge without intrusive navigation banner copy.
   final bool compact;
 
   void _openSupportSheet(BuildContext context) {
-    HapticFeedback.lightImpact();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -26,28 +29,35 @@ class SupportButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(appStringsProvider);
-    final isCompact = compact || MediaQuery.sizeOf(context).width < 390;
+    final tokens = context.tokens;
 
-    if (isCompact) {
-      return IconButton(
-        icon: const Icon(Icons.shield_outlined, size: 18),
-        tooltip: strings.needSupportBtn,
+    return Tooltip(
+      message: strings.needSupportBtn,
+      excludeFromSemantics: true,
+      child: MindPressable(
         onPressed: () => _openSupportSheet(context),
-      );
-    }
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextButton.icon(
-      style: TextButton.styleFrom(
-        foregroundColor: isDark ? LabColors.safetyWarmthDark : LabColors.safetyWarmth,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        semanticLabel: strings.needSupportBtn,
+        borderRadius: BorderRadius.circular(24),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: tokens.safetyWarmthSoft,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.shield_outlined,
+                size: 20,
+                color: tokens.safetyWarmth,
+              ),
+            ),
+          ),
+        ),
       ),
-      icon: const Icon(Icons.shield_outlined, size: 15),
-      label: Text(
-        strings.needSupportBtn,
-        style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, letterSpacing: 0.3),
-      ),
-      onPressed: () => _openSupportSheet(context),
     );
   }
 }

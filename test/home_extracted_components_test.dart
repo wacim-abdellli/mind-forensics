@@ -53,8 +53,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verify emotion pills and intensity header
+      // Verify emotion pills, intensity scale, and feeling word
       expect(find.text('${strings.moodIntensityLabel.toUpperCase()}: 5/10'), findsOneWidget);
+      expect(find.text('Moderate'), findsOneWidget);
       expect(find.text('CALM'), findsOneWidget);
       expect(find.text('ANXIOUS'), findsOneWidget);
 
@@ -62,6 +63,13 @@ void main() {
       await tester.tap(find.text('ANXIOUS'));
       await tester.pumpAndSettle();
       expect(selectedIdx, equals(1));
+
+      // Tap intensity level 8 cleanly (zero bar dragging)
+      await tester.tap(find.byKey(const ValueKey<String>('intensity-level-8')));
+      await tester.pumpAndSettle();
+      expect(intensity, equals(8.0));
+      expect(find.text('${strings.moodIntensityLabel.toUpperCase()}: 8/10'), findsOneWidget);
+      expect(find.text('Strong'), findsOneWidget);
 
       // Enter optional text note
       await tester.enterText(find.byType(TextField), 'Calibrated evening walk');
@@ -108,6 +116,73 @@ void main() {
       await tester.tap(find.text(strings.resumeInvestigation));
       await tester.pumpAndSettle();
       expect(resumed, isTrue);
+    });
+
+    testWidgets('HomeDailyCheckInCard mood pills keep invariant layout geometry when selection changes', (tester) async {
+      final allMoods = const [
+        (key: 'calm', icon: Icons.spa_outlined),
+        (key: 'anxious', icon: Icons.bolt_outlined),
+        (key: 'frustrated', icon: Icons.local_fire_department_outlined),
+        (key: 'heavy', icon: Icons.grain_outlined),
+        (key: 'restless', icon: Icons.air_outlined),
+      ];
+      String labelFor(String key) => switch (key) {
+        'calm' => 'Calm',
+        'anxious' => 'Anxious',
+        'frustrated' => 'Frustrated',
+        'heavy' => 'Heavy',
+        'restless' => 'Restless',
+        _ => key,
+      };
+      int selectedIdx = 4; // Start on 'Restless'
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(useMaterial3: true, extensions: const [MindTokens.light]),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: SizedBox(
+                width: 340,
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    return HomeDailyCheckInCard(
+                      tokens: MindTokens.light,
+                      strings: strings,
+                      isDark: false,
+                      todayTrace: null,
+                      traces: const [],
+                      selectedMoodIndex: selectedIdx,
+                      moodIntensity: 5.0,
+                      todayNoteController: TextEditingController(),
+                      moodOptions: allMoods,
+                      onMoodSelected: (idx) => setState(() => selectedIdx = idx),
+                      onIntensityChanged: (_) {},
+                      onSave: () {},
+                      getMoodLabel: (key, _) => labelFor(key),
+                      getMoodColor: (_) => LabColors.moodCalm,
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Map<String, Rect> captureRects() => {
+        for (final m in allMoods)
+          m.key: tester.getRect(find.text(labelFor(m.key))),
+      };
+
+      final initialRects = captureRects();
+
+      // Selecting any pill (including 'Anxious' on Row 1) must not reflow sibling pills.
+      for (final m in allMoods) {
+        await tester.tap(find.text(labelFor(m.key)));
+        await tester.pumpAndSettle();
+        expect(captureRects(), equals(initialRects), reason: 'Reflow after selecting ${m.key}');
+      }
     });
   });
 }

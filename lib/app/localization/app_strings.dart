@@ -185,6 +185,22 @@ class AppStrings {
   String get moodRestless => isArabic ? 'متشتّت' : (isFrench ? 'Agité' : 'Restless');
   String get moodIntensityLabel => isArabic ? 'شدة الشعور' : (isFrench ? 'Intensité' : 'Intensity');
 
+  String intensityLevelWord(int level) {
+    if (level <= 2) {
+      return isArabic ? 'خفيف' : (isFrench ? 'Douce' : 'Light');
+    }
+    if (level <= 4) {
+      return isArabic ? 'بسيط' : (isFrench ? 'Légère' : 'Mild');
+    }
+    if (level <= 6) {
+      return isArabic ? 'متوسّط' : (isFrench ? 'Modérée' : 'Moderate');
+    }
+    if (level <= 8) {
+      return isArabic ? 'قوي' : (isFrench ? 'Forte' : 'Strong');
+    }
+    return isArabic ? 'قوي برشا' : (isFrench ? 'Intense' : 'Overwhelming');
+  }
+
   // Daily Cognitive Insight
   String get dailyInsightTitle => isArabic ? 'ملاحظة علم الأعصاب الإدراكي' : (isFrench ? 'Éclairage Neuro-Cognitif' : 'Neuro-Cognitive Insight');
   String get dailyInsightBody => isArabic
@@ -282,7 +298,7 @@ class AppStrings {
   String get settingsTitle => isArabic ? 'إعدادات المنظومة' : (isFrench ? 'Paramètres Cliniques' : 'Clinical Settings');
   String get themeModeTitle => isArabic ? 'بيئة الإضاءة البصرية' : (isFrench ? 'Environnement Visuel' : 'Visual Environment');
   String get themeDaylight => isArabic ? 'نهاري' : (isFrench ? 'Jour' : 'Daylight');
-  String get themeNight => isArabic ? 'ليلي عالي التباين' : (isFrench ? 'Sombre OLED' : 'OLED Dark');
+  String get themeNight => isArabic ? 'ليلي' : (isFrench ? 'Sombre OLED' : 'OLED Dark');
   String get themeSystem => isArabic ? 'النظام' : (isFrench ? 'Système' : 'System');
   String get languageTitle => isArabic ? 'لغة المنظومة' : (isFrench ? 'Langue clinique' : 'Clinical Language');
   String get aiHistoryTitle => isArabic ? 'سياق الأنماط المعرفية التراكمية' : (isFrench ? 'Mémoire des schémas cognitifs' : 'Cognitive Pattern Memory');
@@ -321,7 +337,7 @@ class AppStrings {
   String get stageEvidence => isArabic ? 'الحالة الجسدية والفكرية' : (isFrench ? 'État Somatique & Pensée' : 'Neural & Somatic State');
   String get stageHypotheses => isArabic ? 'النماذج التفسيرية' : (isFrench ? 'Modèles Alternatifs' : 'Cognitive Models');
   String get stageCrossExam => isArabic ? 'اختبار الواقع السقراطي' : (isFrench ? 'Test de Réalité' : 'Socratic Reality Test');
-  String get stageFindings => isArabic ? 'تشخيص الانحيازات' : (isFrench ? 'Synthèse des Biais' : 'Distortion Diagnosis');
+  String get stageFindings => isArabic ? 'ملخص الأنماط' : (isFrench ? 'Synthèse des Schémas' : 'Pattern Reflection');
   String get stageVerdict => isArabic ? 'إعادة التوجيه المتزنة' : (isFrench ? 'Recadrage Adaptatif' : 'Adaptive Reframe');
 
   String stepBadgeText(int step, String stageTitle) =>
@@ -370,9 +386,9 @@ class AppStrings {
   String get crossExamQuestion3 => isArabic
       ? '“ما هو الاحتمال الرياضي لحدوث السيناريو الكارثي الذي تخشاه؟”'
       : (isFrench ? '« Quelle est la probabilité statistique réelle du pire scénario ? »' : '“What is the statistical likelihood of your catastrophic fear?”');
-  String get synthesizeFindingsBtn => isArabic ? 'عرض تشخيص الانحيازات المعرفية' : (isFrench ? 'Afficher le diagnostic cognitif' : 'SYNTHESIZE DISTORTION DIAGNOSIS');
+  String get synthesizeFindingsBtn => isArabic ? 'استعراض أنماط التفكير' : (isFrench ? 'Explorer les schémas cognitifs' : 'SUMMARIZE THINKING PATTERNS');
 
-  String get findingsTitle => isArabic ? 'تشخيص الانحيازات المعرفية' : (isFrench ? 'Diagnostic des Distorsions' : 'Cognitive Distortion Diagnosis');
+  String get findingsTitle => isArabic ? 'أنماط التفكير والملاحظة' : (isFrench ? 'Schémas de Pensée' : 'Thinking Pattern Reflection');
   String get findingsSub => isArabic 
       ? 'خلاصة الفرز بين الواقع الحسي والانحيازات العصبية التي ضخمت الموقف:'
       : (isFrench ? 'Séparation clinique entre réalité empirique et filtres déformants :' : 'Clinical triage between empirical reality and cognitive distortions:');
@@ -1470,7 +1486,7 @@ class AppStrings {
   String get typicalEnergyLabel => isArabic ? 'متوسط الطاقة' : (isFrench ? 'ÉNERGIE TYPIQUE' : 'TYPICAL ENERGY');
   String get moodIntensityShortLabel => isArabic ? 'شدة المزاج' : (isFrench ? 'INTENSITÉ' : 'INTENSITY');
   String get frequentEmotionsLabel => isArabic ? 'المشاعر المتكررة' : (isFrench ? 'ÉMOTIONS FRÉQUENTES' : 'FREQUENT EMOTIONS');
-  String get suggestedTherapyLabel => isArabic ? 'مواضيع مقترحة للنقاش المهني' : (isFrench ? 'PISTES DE DISCUSSION THÉRAPEUTIQUE' : 'SUGGESTED FOR THERAPY DISCUSSION');
+  String get suggestedTherapyLabel => isArabic ? 'مواضيع مقترحة للنقاش المهني' : (isFrench ? 'PISTES POUR VOTRE SPÉCIALISTE' : 'TOPICS FOR SPECIALIST DISCUSSION');
 
   String get memberRoleLabel => isArabic ? 'عضو مسار الوعي الذاتي' : (isFrench ? 'Membre Mind Forensics' : 'Mind Forensics Member');
   String get myAccountTitle => isArabic ? 'ملفي النفسي وحسابي' : (isFrench ? 'Mon Profil & Compte' : 'My Account & Context');

@@ -19,6 +19,7 @@ import '../../mind_trace/controllers/mind_trace_controller.dart';
 import '../../mind_trace/domain/mind_trace_model.dart';
 import '../../progress/data/progress_analytics_service.dart';
 import '../../progress/domain/progress_analytics_model.dart';
+import '../../track/presentation/widgets/track_mood_utils.dart';
 import '../data/pattern_awareness_service.dart';
 import '../domain/pattern_divergence_model.dart';
 import '../domain/personal_baseline_model.dart';
@@ -605,7 +606,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
                     tokens: tokens,
                     icon: Icons.label_outline_rounded,
                     label: strings.mostCommonThisWeekLabel,
-                    value: mostCommonMood,
+                    value: trackMoodLabel(mostCommonMood, strings),
                   ),
                 ],
               ],
@@ -859,7 +860,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
               const SizedBox(width: 8),
               Flexible(
                 child: MindBadge(
-                  label: baseline.statusLabel,
+                  label: baseline.localizedStatusLabel(strings),
                   backgroundColor: baseline.hasEstablishedBaseline
                       ? tokens.accentSoft
                       : tokens.surfaceSecondary,
@@ -904,7 +905,7 @@ class _InsightsScreenState extends ConsumerState<InsightsScreen> {
             if (baseline.commonEmotions.isNotEmpty) ...[
               const Divider(height: 24, thickness: 0.5),
               Text(
-                '${strings.frequentEmotionsLabel}: ${baseline.commonEmotions.join(', ')}',
+                '${strings.frequentEmotionsLabel}: ${baseline.commonEmotions.map((e) => trackMoodLabel(e, strings)).join(', ')}',
                 style: TextStyle(color: tokens.textTertiary, fontSize: 11.5, fontWeight: FontWeight.w600),
               ),
             ],

@@ -8,6 +8,16 @@ import 'mind_tokens.dart';
 /// using the Earth/Sage palette (Light #F7F8F5, Dark #151B19).
 /// Precision 20px corner radii, subtle 1px hairline borders, balanced typography.
 class LabTheme {
+  /// Ordered Arabic fallback chain so Inter never renders missing glyphs on
+  /// Android (`Noto Naskh Arabic`), iOS (`Geeza Pro`), or bundled fonts.
+  static const List<String> fontFallback = [
+    'Noto Sans Arabic',
+    'Noto Naskh Arabic',
+    'Noto Naskh Arabic UI',
+    'Geeza Pro',
+    'Arial',
+  ];
+
   static TextStyle monoStyle({
     double fontSize = 12,
     FontWeight fontWeight = FontWeight.w600,
@@ -16,6 +26,7 @@ class LabTheme {
   }) {
     return TextStyle(
       fontFamily: 'Inter',
+      fontFamilyFallback: fontFallback,
       fontFeatures: const [FontFeature.tabularFigures()],
       fontSize: fontSize,
       fontWeight: fontWeight,
@@ -34,6 +45,7 @@ class LabTheme {
   }) {
     return TextStyle(
       fontFamily: 'Inter',
+      fontFamilyFallback: fontFallback,
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
@@ -53,6 +65,7 @@ class LabTheme {
   }) {
     return TextStyle(
       fontFamily: 'Inter',
+      fontFamilyFallback: fontFallback,
       fontSize: fontSize,
       fontWeight: fontWeight,
       color: color,
@@ -68,6 +81,7 @@ class LabTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       fontFamily: 'Inter',
+      fontFamilyFallback: fontFallback,
       scaffoldBackgroundColor: LabColors.daylightBackground,
       extensions: const [MindTokens.light],
       colorScheme: const ColorScheme.light(
@@ -190,6 +204,7 @@ class LabTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       fontFamily: 'Inter',
+      fontFamilyFallback: fontFallback,
       scaffoldBackgroundColor: LabColors.nightBackground,
       extensions: const [MindTokens.dark],
       colorScheme: const ColorScheme.dark(

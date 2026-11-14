@@ -9,6 +9,7 @@ import '../../../app/theme/mind_tokens.dart';
 import '../../../core/widgets/bouncing_widget.dart';
 import '../../../core/widgets/fingerprint_thread_signature.dart';
 import '../controllers/profile_controller.dart';
+import '../domain/communication_preferences_catalog.dart';
 import '../domain/condition_type.dart';
 import '../domain/diagnostic_status.dart';
 import '../domain/psychological_profile_model.dart';
@@ -178,7 +179,7 @@ class PsychologicalProfileView extends ConsumerWidget {
                 textPrimary: textPrimary,
                 textSecondary: textSecondary,
                 onEdit: () => EditCommunicationSheet.show(context, profile),
-                content: _buildCommunicationSummary(context, profile, isDark, borderColor, textPrimary, textSecondary),
+                content: _buildCommunicationSummary(context, profile, strings, isDark, borderColor, textPrimary, textSecondary),
               ),
 
               const SizedBox(height: 14),
@@ -389,7 +390,7 @@ class PsychologicalProfileView extends ConsumerWidget {
                           Text(
                             isCompleted ? strings.profileCompletedBadge : strings.profileNotCompletedBadge,
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: 11.5,
                               fontWeight: FontWeight.w700,
                               color: isCompleted ? context.tokens.accent : textSecondary,
                             ),
@@ -404,7 +405,7 @@ class PsychologicalProfileView extends ConsumerWidget {
                 const SizedBox(height: 6),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 11, color: textSecondary, height: 1.3),
+                  style: TextStyle(fontSize: 12, color: textSecondary, height: 1.3),
                 ),
                 const SizedBox(height: 12),
                 Divider(color: borderColor, height: 1),
@@ -707,40 +708,64 @@ class PsychologicalProfileView extends ConsumerWidget {
   Widget _buildCommunicationSummary(
     BuildContext context,
     PsychologicalProfileModel profile,
+    AppStrings strings,
     bool isDark,
     Color borderColor,
     Color textPrimary,
     Color textSecondary,
   ) {
-    return Row(
+    final toneLabel = _resolvePrefLabel(
+      profile.communicationTone,
+      CommunicationPreferencesCatalog.tones,
+      strings,
+    );
+    final lengthLabel = _resolvePrefLabel(
+      profile.responseLength,
+      CommunicationPreferencesCatalog.responseLengths,
+      strings,
+    );
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: context.tokens.surfaceSecondary,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: borderColor),
           ),
           child: Text(
-            profile.communicationTone.toUpperCase(),
-            style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: textPrimary),
+            toneLabel,
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: textPrimary),
           ),
         ),
-        const SizedBox(width: 6),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: context.tokens.surfaceSecondary,
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: borderColor),
           ),
           child: Text(
-            profile.responseLength.toUpperCase(),
-            style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: textSecondary),
+            lengthLabel,
+            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: textSecondary),
           ),
         ),
       ],
     );
+  }
+
+  String _resolvePrefLabel(
+    String rawKey,
+    List<PrefChoiceItem> catalog,
+    AppStrings strings,
+  ) {
+    for (final item in catalog) {
+      if (item.key == rawKey) return item.localized(strings);
+    }
+    return rawKey.replaceAll('_', ' ');
   }
 
   // ===========================================================================

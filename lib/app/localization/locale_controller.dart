@@ -22,22 +22,26 @@ enum AppLanguage {
 /// Notifier managing active language with persistence.
 class LocaleController extends Notifier<Locale> {
   static const String _keyLocale = 'mind_forensics_locale';
+  bool _hasExplicitSelection = false;
 
   @override
   Locale build() {
+    _hasExplicitSelection = false;
     _loadSavedLocale();
     return const Locale('en');
   }
 
   Future<void> _loadSavedLocale() async {
     final prefs = await SharedPreferences.getInstance();
+    if (_hasExplicitSelection) return;
     final saved = prefs.getString(_keyLocale);
-    if (saved != null) {
+    if (saved != null && !_hasExplicitSelection) {
       state = Locale(saved);
     }
   }
 
   Future<void> setLanguage(AppLanguage language) async {
+    _hasExplicitSelection = true;
     state = Locale(language.code);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyLocale, language.code);

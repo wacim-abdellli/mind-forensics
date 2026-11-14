@@ -57,9 +57,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRecentCases();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _initializedFromTrace) return;
+      if (!mounted) return;
+      _loadRecentCases();
+      if (_initializedFromTrace) return;
       final today = ref.read(todayTraceProvider);
       if (today != null) {
         setState(() {

@@ -316,8 +316,11 @@ class ActiveCaseController extends Notifier<AsyncValue<CaseModel?>> {
 
   Future<CaseModel?> _hydrateActiveCase() async {
     try {
+      await Future<void>.microtask(() {});
+      if (!ref.mounted) return null;
       final repo = ref.read(caseRepositoryProvider);
       final cases = await repo.getAllCases();
+      if (!ref.mounted) return null;
       final activeCases = cases.where((c) => !c.isCompleted).toList();
       if (activeCases.isNotEmpty && (state.value == null || state.value!.isCompleted)) {
         state = AsyncValue.data(activeCases.first);

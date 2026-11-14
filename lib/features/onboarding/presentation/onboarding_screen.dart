@@ -10,6 +10,7 @@ import '../../../app/theme/lab_colors.dart';
 import '../../../app/theme/mind_tokens.dart';
 import '../../../core/safety/support_button.dart';
 import '../../../core/widgets/fingerprint_thread_signature.dart';
+import '../../../core/widgets/mind_intensity_picker.dart';
 import '../../../core/widgets/mind_pressable.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../journey/controllers/journey_controller.dart';
@@ -1099,8 +1100,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 child: Container(
                   constraints:
                       const BoxConstraints(minWidth: 96, minHeight: 48),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: selected ? 13.4 : 14.0,
+                    vertical: selected ? 9.4 : 10.0,
+                  ),
                   decoration: BoxDecoration(
                     color: selected
                         ? mood.color.withValues(alpha: 0.16)
@@ -1124,8 +1127,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         label,
                         style: TextStyle(
                           fontSize: 13.5,
-                          fontWeight:
-                              selected ? FontWeight.w700 : FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                           color: tokens.textPrimary,
                         ),
                       ),
@@ -1158,49 +1160,39 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: activeMoodColor.withValues(alpha: 0.16),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$_firstIntensity / 10',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: tokens.textPrimary,
-                          fontFeatures: const [FontFeature.tabularFigures()],
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 185),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: activeMoodColor.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '$_firstIntensity/10 · ${strings.intensityLevelWord(_firstIntensity)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: tokens.textPrimary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    activeTrackColor: activeMoodColor,
-                    inactiveTrackColor: tokens.surfaceSecondary,
-                    thumbColor: activeMoodColor,
-                    overlayColor: activeMoodColor.withValues(alpha: 0.14),
-                  ),
-                  child: Slider(
-                    value: _firstIntensity.toDouble(),
-                    min: 1,
-                    max: 10,
-                    divisions: 9,
-                    label: '$_firstIntensity',
-                    onChanged: (val) {
-                      final rounded = val.round();
-                      if (rounded != _firstIntensity) {
-                        HapticFeedback.selectionClick();
-                        setState(() => _firstIntensity = rounded);
-                      }
-                    },
-                  ),
+                const SizedBox(height: 12),
+                MindIntensityPicker(
+                  value: _firstIntensity,
+                  accentColor: activeMoodColor,
+                  strings: strings,
+                  onChanged: (rounded) =>
+                      setState(() => _firstIntensity = rounded),
                 ),
               ],
             ),

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/localization/app_strings.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/mind_tokens.dart';
+import '../../../../core/widgets/mind_intensity_picker.dart';
 import '../../../../core/widgets/mind_pressable.dart';
 import '../../../mind_trace/domain/mind_trace_model.dart';
 
 /// Clean, low-cognitive-load Daily Check-in Card for [HomeScreen].
-///
 /// Strictly options-first: responsive wrapped plain-language mood pills,
 /// tactile 1-10 intensity slider, optional today's note, and zero telemetry
 /// jargon or raw hex literals.
@@ -51,6 +50,7 @@ class HomeDailyCheckInCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final activeMood = moodOptions[selectedMoodIndex].key;
     final activeMoodColor = getMoodColor(activeMood);
+    final roundedIntensity = moodIntensity.round().clamp(1, 10);
     final hasLoggedToday = todayTrace != null;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
 
@@ -164,21 +164,105 @@ class HomeDailyCheckInCard extends StatelessWidget {
             ),
           ],
 
-          // Header row: plain Intensity label + current state icon
+          // Options-First Mood Pills (Wrapped cleanly — invariant geometry)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: List.generate(moodOptions.length, (index) {
+              final option = moodOptions[index];
+              final isSelected = index == selectedMoodIndex;
+              final label = getMoodLabel(option.key, strings);
+              final moodColor = getMoodColor(option.key);
+
+              return Semantics(
+                selected: isSelected,
+                child: MindPressable(
+                  onPressed: () => onMoodSelected(index),
+                  semanticLabel: label,
+                  borderRadius: BorderRadius.circular(tokens.chipRadius),
+                  child: AnimatedContainer(
+                    duration: reduceMotion
+                        ? Duration.zero
+                        : const Duration(milliseconds: 160),
+                    curve: Curves.easeOutCubic,
+                    constraints: const BoxConstraints(minHeight: 48),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSelected ? 12.4 : 13.0,
+                      vertical: isSelected ? 9.4 : 10.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected ? tokens.accentSoft : tokens.surface,
+                      borderRadius: BorderRadius.circular(tokens.chipRadius),
+                      border: Border.all(
+                        color: isSelected ? moodColor : tokens.border,
+                        width: isSelected ? 1.6 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          option.icon,
+                          size: 16,
+                          color: isSelected ? moodColor : tokens.textSecondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? tokens.textPrimary : tokens.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+
+          const SizedBox(height: 14),
+
+          // Header row: plain Intensity label + human feeling badge + current state icon
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  '${strings.moodIntensityLabel.toUpperCase()}: ${moodIntensity.toInt()}/10',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                    letterSpacing: 0.6,
-                    color: tokens.textSecondary,
-                  ),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      '${strings.moodIntensityLabel.toUpperCase()}: $roundedIntensity/10',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        letterSpacing: 0.6,
+                        color: tokens.textSecondary,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: activeMoodColor.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        strings.intensityLevelWord(roundedIntensity),
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: tokens.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),
@@ -189,92 +273,14 @@ class HomeDailyCheckInCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
 
-          // Tactile 1-10 Intensity Slider
-          SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: activeMoodColor,
-              thumbColor: activeMoodColor,
-              inactiveTrackColor: tokens.surfaceSecondary,
-              trackHeight: 4,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
-            ),
-            child: Slider(
-              value: moodIntensity,
-              min: 1,
-              max: 10,
-              divisions: 9,
-              onChanged: (val) {
-                HapticFeedback.selectionClick();
-                onIntensityChanged(val);
-              },
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // Options-First Mood Pills (Wrapped cleanly — zero horizontal clipping)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: List.generate(moodOptions.length, (index) {
-              final option = moodOptions[index];
-              final isSelected = index == selectedMoodIndex;
-              final label = getMoodLabel(option.key, strings);
-              final moodColor = getMoodColor(option.key);
-
-              return MindPressable(
-                onPressed: () => onMoodSelected(index),
-                semanticLabel: label,
-                borderRadius: BorderRadius.circular(tokens.chipRadius),
-                child: AnimatedContainer(
-                  duration: reduceMotion
-                      ? Duration.zero
-                      : const Duration(milliseconds: 160),
-                  curve: Curves.easeOutCubic,
-                  constraints: const BoxConstraints(minHeight: 48),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: isSelected ? tokens.accentSoft : tokens.surface,
-                    borderRadius: BorderRadius.circular(tokens.chipRadius),
-                    border: Border.all(
-                      color: isSelected ? moodColor : tokens.border,
-                      width: isSelected ? 1.5 : 1.0,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        option.icon,
-                        size: 16,
-                        color: isSelected ? moodColor : tokens.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected ? tokens.textPrimary : tokens.textSecondary,
-                          ),
-                        ),
-                      ),
-                      if (isSelected) ...[
-                        const SizedBox(width: 6),
-                        Icon(
-                          Icons.check_rounded,
-                          size: 15,
-                          color: tokens.accent,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            }),
+          // Tap-first 1-10 tactile scale
+          MindIntensityPicker(
+            value: roundedIntensity,
+            accentColor: activeMoodColor,
+            strings: strings,
+            onChanged: (val) => onIntensityChanged(val.toDouble()),
           ),
 
           const SizedBox(height: 14),

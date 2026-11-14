@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import '../../../app/localization/app_strings.dart';
 import '../../mind_trace/domain/mind_trace_model.dart';
 
 /// Represents an individual's self-reported personal baseline.
@@ -65,6 +66,22 @@ class PersonalBaseline {
     } else if (totalRecordedDays < 14) {
       return 'Preliminary Observations (${totalRecordedDays}d)';
     } else {
+      return 'Established Baseline (${totalRecordedDays}d)';
+    }
+  }
+
+  String localizedStatusLabel(AppStrings strings) {
+    if (totalRecordedDays < 3) {
+      if (strings.isArabic) return 'قيد المعايرة ($totalRecordedDays/3 أ)';
+      if (strings.isFrench) return 'Calibration ($totalRecordedDays/3j)';
+      return 'Calibrating ($totalRecordedDays/3d)';
+    } else if (totalRecordedDays < 14) {
+      if (strings.isArabic) return 'ملاحظات أولية ($totalRecordedDays أ)';
+      if (strings.isFrench) return 'Observations préliminaires (${totalRecordedDays}j)';
+      return 'Preliminary Observations (${totalRecordedDays}d)';
+    } else {
+      if (strings.isArabic) return 'مرجعك المعتاد ($totalRecordedDays أ)';
+      if (strings.isFrench) return 'Repère personnel (${totalRecordedDays}j)';
       return 'Established Baseline (${totalRecordedDays}d)';
     }
   }

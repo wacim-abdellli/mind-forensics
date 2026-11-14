@@ -58,4 +58,3 @@ class MindForensicsApp extends ConsumerWidget {
     );
   }
 }
-

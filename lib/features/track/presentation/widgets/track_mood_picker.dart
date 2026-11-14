@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../../../app/localization/app_strings.dart';
 import '../../../../app/theme/mind_tokens.dart';
 import '../../../../core/widgets/mind_card.dart';
+import '../../../../core/widgets/mind_intensity_picker.dart';
 import '../../../../core/widgets/mind_pressable.dart';
 import 'track_mood_utils.dart';
 
@@ -129,8 +129,8 @@ class TrackMoodPicker extends StatelessWidget {
   }
 }
 
-/// Accessible 1-10 intensity slider with localized calm/overwhelmed anchors
-/// and tabular live value readout.
+/// Accessible 1-10 intensity scale with localized feeling word,
+/// calm/overwhelmed anchors, and tabular live value readout.
 class TrackIntensitySlider extends StatelessWidget {
   const TrackIntensitySlider({
     super.key,
@@ -148,8 +148,7 @@ class TrackIntensitySlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final clamped = value.clamp(1.0, 10.0);
-    final rounded = clamped.round();
+    final rounded = value.round().clamp(1, 10);
 
     final body = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -169,90 +168,40 @@ class TrackIntensitySlider extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: tokens.accentSoft,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: tokens.accent.withValues(alpha: 0.35),
+            const SizedBox(width: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 185),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: tokens.accentSoft,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: tokens.accent.withValues(alpha: 0.35),
+                  ),
                 ),
-              ),
-              child: Text(
-                '$rounded/10',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: tokens.accent,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+                child: Text(
+                  '$rounded/10 · ${strings.intensityLevelWord(rounded)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: tokens.accent,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 6),
-        Semantics(
-          label: strings.moodIntensityLabel,
-          value: '$rounded/10',
-          slider: true,
-          child: SliderTheme(
-            data: SliderTheme.of(context).copyWith(
-              activeTrackColor: tokens.accent,
-              inactiveTrackColor: tokens.border,
-              thumbColor: tokens.textPrimary,
-              overlayColor: tokens.accent.withValues(alpha: 0.12),
-              trackHeight: 4,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-            ),
-            child: Slider(
-              value: clamped,
-              min: 1,
-              max: 10,
-              divisions: 9,
-              onChanged: (next) {
-                HapticFeedback.selectionClick();
-                onChanged(next);
-              },
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  strings.calmScaleAnchor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w500,
-                    color: tokens.textSecondary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  strings.overwhelmedScaleAnchor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w500,
-                    color: tokens.textSecondary,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        const SizedBox(height: 12),
+        MindIntensityPicker(
+          value: rounded,
+          accentColor: tokens.accent,
+          strings: strings,
+          onChanged: (next) => onChanged(next.toDouble()),
         ),
       ],
     );
